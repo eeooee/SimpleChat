@@ -37,14 +37,27 @@ namespace Client
 
         private void SetUp()
         {
+
+            GetIP();
+            GetPort();
+            Console.WriteLine("Welcome to SimpleChat, where you can keep in touch with friends and family across the network!");
+            Console.WriteLine("Pick a username, type some stuff, then hit enter to send messages.");
+        }
+
+        private void GetIP()
+        {
             string input = "";
             while (!(IPAddress.TryParse(input, out ip)))
             {
                 Console.WriteLine("Enter the IP address your server is active at.  127.0.0.1 is the local network.");
                 input = Console.ReadLine();
             }
+        }
+
+        private void GetPort()
+        {
             Console.WriteLine("To change the default port, type y.  Otherwise, hit enter. ");
-            input = Console.ReadLine();
+            string input = Console.ReadLine();
             if (input.Contains("y"))
             {
                 input = Console.ReadLine();
@@ -54,9 +67,6 @@ namespace Client
                 }
                 Console.WriteLine("New port number is {0}", portNumber);
             }
-
-            Console.WriteLine("Welcome to SimpleChat, where you can keep in touch with friends and family across the network!");
-            Console.WriteLine("Pick a username, type some stuff, then hit enter to send messages.");
         }
 
         private void GetName()
