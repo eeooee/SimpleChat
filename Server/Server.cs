@@ -19,11 +19,11 @@ namespace Server
         TcpClient connection;
         NetworkStream stream;
         StreamReader reader;
-        ILogger logger; 
+        ILogger logger;
         StreamWriter writer;
         ConcurrentQueue<Message> messageQueue = new ConcurrentQueue<Message>();
         public Dictionary<NetworkStream, User> clients;
-        
+
 
 
         public Server(int port, ILogger logger)
@@ -32,13 +32,14 @@ namespace Server
             IPAddress ip = IPAddress.Parse("127.0.0.1");
             logger.LogMessage("Attempting to start server...");
             serverListener = new TcpListener(ip, port);
-            try {
+            try
+            {
                 serverListener.Start();
                 running = true;
                 logger.LogMessage("Connected!");
                 clients = new Dictionary<NetworkStream, User>();
             }
-            catch(Exception E)
+            catch (Exception E)
             {
                 logger.LogMessage("Failed to connect to server.");
                 logger.LogMessage(E.ToString());
@@ -61,14 +62,14 @@ namespace Server
                     clients.Add(stream, new User(GetUserName()));
                     Thread inputThread = new Thread(() => AcceptMessage(clients[stream], stream));
                     inputThread.Start();
-                    
+
 
                 }
                 else
                 {
                     Thread.Sleep(100);
                 }
-               
+
             }
 
         }
@@ -84,7 +85,7 @@ namespace Server
 
         private void AcceptMessage(User user, NetworkStream stream)
         {
-            while(running)
+            while (running)
             {
                 try
                 {
@@ -101,26 +102,27 @@ namespace Server
                     //}
                     //else {
 
-                        Message message = new Message(user, input);
-                        messageQueue.Enqueue(message);
+                    Message message = new Message(user, input);
+                    messageQueue.Enqueue(message);
                     logger.LogMessage("Message from " + user.Name + " added to queue");
                     //}
 
                 }
-            catch (IOException E)
-            {
+                catch (IOException E)
+                {
                     logger.LogMessage(E.ToString());
                     clients.Remove(stream);
                     SendSystemMessage(user.Name + " has disconnected.");
                     reader.Close();
+                    running = false;
                     break;
-            }
-                catch(Exception E)
+                }
+                catch (Exception E)
                 {
 
                     logger.LogMessage(E.ToString());
                 }
-        }
+            }
         }
 
         private void DispatchQueue()
@@ -131,7 +133,8 @@ namespace Server
                 if (messageQueue.TryDequeue(out message))
                 {
                     SendChatMessage(message);
-                    logger.LogMessage("Sent message from " + message.userName + " to users");                 }
+                    logger.LogMessage("Sent message from " + message.userName + " to users");
+                }
             }
         }
 
@@ -140,13 +143,13 @@ namespace Server
             string name = reader.ReadLine();
             reader.DiscardBufferedData();
             SendSystemMessage("New user " + name + " has connected!");
-            return name; 
+            return name;
         }
 
-        private string PickWhisperer(string input)
-        {
-          return input.Replace("!whisper", "");
-        }
+        //private string PickWhisperer(string input)
+        //{
+        //  return input.Replace("!whisper ", "");
+        //}
 
         private void SendChatMessage(Message message)
         {
@@ -154,7 +157,8 @@ namespace Server
 
             foreach (KeyValuePair<NetworkStream, User> pair in clients)
             {
-                if (!(pair.Value == message.userReference)) {
+                if (!(pair.Value == message.userReference))
+                {
 
                     writer = new StreamWriter(pair.Key, Encoding.ASCII);
                     writer.WriteLine(message.ToString());
@@ -163,19 +167,19 @@ namespace Server
             }
         }
 
-        private void SendPrivateMessage(Message message, string user)
-        {
-            logger.LogMessage(message.ToString());
-            foreach (KeyValuePair<NetworkStream, User> pair in clients)
-            {
-                if (pair.Value.Name.Contains(user))
-                {
-                    pair.Value.Notify(pair.Key, "Whisper from " + message.userName);
-                    pair.Value.PrivateMessage(pair.Key, message.ToString());
-                }
-            }
+        //private void SendPrivateMessage(Message message, string user)
+        //{
+        //    logger.LogMessage(message.ToString());
+        //    foreach (KeyValuePair<NetworkStream, User> pair in clients)
+        //    {
+        //        if (pair.Value.Name.Contains(user))
+        //        {
+        //            pair.Value.Notify(pair.Key, "Whisper from " + message.userName);
+        //            pair.Value.PrivateMessage(pair.Key, message.ToString());
+        //        }
+        //    }
 
-        }
+        //}
 
         private void SendSystemMessage(string message)
         {
