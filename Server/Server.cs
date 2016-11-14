@@ -110,7 +110,6 @@ namespace Server
                 }
                 catch (IOException E)
                 {
-                    logger.LogMessage(E.ToString());
                     clients.Remove(stream);
                     SendSystemMessage(user.Name + " has disconnected.");
                     reader.Close();

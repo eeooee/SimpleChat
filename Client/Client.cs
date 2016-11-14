@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Client
 {
-    class Client 
+    class Client
     {
         TcpClient chatClient = new TcpClient();
         NetworkStream chatStream;
@@ -20,10 +20,12 @@ namespace Client
         Thread messages;
         bool running;
         IPAddress ip = IPAddress.Parse("127.0.0.1");
+        int portNumber;
 
-        public Client(int port)
+        public Client()
         {
-            chatClient.Connect(ip, port);
+            SetUp();
+            chatClient.Connect(ip, portNumber);
             Console.WriteLine("Connected to server!");
             chatStream = chatClient.GetStream();
             reader = new StreamReader(chatStream, Encoding.ASCII);
@@ -32,7 +34,31 @@ namespace Client
             StartChat();
 
         }
-        
+
+        private void SetUp()
+        {
+            string input = "";
+            while (!(IPAddress.TryParse(input, out ip)))
+            {
+                Console.WriteLine("Enter the IP address your server is active at.  127.0.0.1 is the local network.");
+                input = Console.ReadLine();
+            }
+            Console.WriteLine("To change the default port, type y.  Otherwise, hit enter. ");
+            input = Console.ReadLine();
+            if (input.Contains("y"))
+            {
+                input = Console.ReadLine();
+                while (!int.TryParse(input, out portNumber))
+                {
+                    input = Console.ReadLine();
+                }
+                Console.WriteLine("New port number is {0}", portNumber);
+            }
+
+            Console.WriteLine("Welcome to SimpleChat, where you can keep in touch with friends and family across the network!");
+            Console.WriteLine("Pick a username, type some stuff, then hit enter to send messages.");
+        }
+
         private void GetName()
         {
             Console.WriteLine("Please enter a name.");
@@ -50,7 +76,7 @@ namespace Client
             typeMessages.Start();
             messages = new Thread(new ThreadStart(seekMessage));
             messages.Start();
-            
+
         }
         public void GetMessage()
         {
@@ -59,7 +85,7 @@ namespace Client
                 string input = Console.ReadLine();
                 if (input.Contains("!quit"))
                 {
-                Environment.Exit(0);
+                    Environment.Exit(0);
                 }
                 writer.WriteLine(input);
                 Console.WriteLine("^Sent^");
@@ -75,10 +101,10 @@ namespace Client
             {
                 try
                 {
-                        string stream = reader.ReadLine();
-                        if(stream!=null) Console.WriteLine(stream);
+                    string stream = reader.ReadLine();
+                    if (stream != null) Console.WriteLine(stream);
                 }
-                catch(Exception E)
+                catch (Exception E)
                 {
                     Console.WriteLine(E.ToString());
                 }
